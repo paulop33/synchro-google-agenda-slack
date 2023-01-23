@@ -2,6 +2,7 @@
 
 namespace App\Command;
 
+use App\Event\CalendarEventIn3MonthsEvent;
 use DateInterval;
 use Endroid\Calendar\Reader\IcalReader;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -12,8 +13,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
-use Symfony\Component\Notifier\ChatterInterface;
-use Symfony\Component\Notifier\Message\ChatMessage;
+use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 #[AsCommand(
     name: 'app:synchro-calendrier',
@@ -21,7 +21,7 @@ use Symfony\Component\Notifier\Message\ChatMessage;
 )]
 class SynchroCalendrierCommand extends Command
 {
-    public function __construct(public ParameterBagInterface $parameterBag, public ChatterInterface $chatter)
+    public function __construct(public ParameterBagInterface $parameterBag, public EventDispatcherInterface $dispatcher)
     {
         parent::__construct();
     }
@@ -47,19 +47,15 @@ class SynchroCalendrierCommand extends Command
         // Read from URL or path
         $calendar = $reader->readFromUrl($this->parameterBag->get('url_calendrier'));
 
-        $dateStart = new \DateTimeImmutable('now');
-        $dateEnd = new \DateTimeImmutable('now');
-        $dateEnd = $dateEnd->add(new DateInterval('P1D'));
+        $dateStart = (new \DateTimeImmutable('now'))->setTime(0, 0, 0);
+        $dateStart = $dateStart->add(new DateInterval('P3M'));
+        $dateEnd = $dateStart->setTime(23, 59, 59);
 
         $events = $calendar->getEvents($dateStart, $dateEnd);
 
         foreach ($events as $event) {
-            $message = (new ChatMessage($event->getTitle()))
-            // if not set explicitly, the message is sent to the
-            // default transport (the first one configured)
-            ->transport('slack');
-
-            $sentMessage = $this->chatter->send($message);
+            $event = new CalendarEventIn3MonthsEvent($event);
+            $this->dispatcher->dispatch($event, CalendarEventIn3MonthsEvent::NAME);
         }
 
         $io->success('You have a new command! Now make it your own! Pass --help to see your options.');
