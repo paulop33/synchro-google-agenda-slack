@@ -69,7 +69,7 @@ class SynchroCalendrierCommand extends Command
             $this->dispatch($events, $period);
         }
 
-        $io->success('You have a new command! Now make it your own! Pass --help to see your options.');
+        $io->success('La synchro vient d\'être jouée.');
 
         return Command::SUCCESS;
     }
