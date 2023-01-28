@@ -86,8 +86,15 @@ class SynchroCalendrierCommand extends Command
     protected function dispatch(array $events, PeriodInterface $period): void
     {
         foreach ($events as $event) {
-            $event = new CalendarEvent($event, $period);
-            $this->dispatcher->dispatch($event, CalendarEvent::NAME);
+            preg_match("/^\[(MAJEUR|MINEUR|MOYEN)\]/i", $event->getTitle(), $matches);
+            if (
+                ((!count($matches) || strtoupper($matches[1]) == 'MAJEUR') && $period->shouldNotifyForImportantEvent())
+                || (count($matches) && strtoupper($matches[1]) == 'MOYEN' && $period->shouldNotifyForMediumEvent())
+                || (count($matches) && strtoupper($matches[1]) == 'MINEUR' && $period->shouldNotifyForLowEvent())
+            ) {
+                $event = new CalendarEvent($event, $period);
+                $this->dispatcher->dispatch($event, CalendarEvent::NAME);
+            }
         }
     }
 }

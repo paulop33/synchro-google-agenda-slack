@@ -30,7 +30,8 @@ class SlackNotificationSenderSubscriber implements EventSubscriberInterface
         ->transport('slack');
 
         $slackOptions = (new SlackOptions())
-        ->block(new SlackHeaderBlock($eventCalendar->getTitle()))
+
+        ->block(new SlackHeaderBlock(str_replace("/^\[(MAJEUR|MINEUR|MOYEN)\]/i", '', $eventCalendar->getTitle())))
         ->block(
             (new SlackSectionBlock())
             ->field("*Début : *\n". $eventCalendar->getDateStart()->format('d/m/Y H:i'))
