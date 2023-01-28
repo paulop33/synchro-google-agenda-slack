@@ -2,8 +2,16 @@
 
 namespace App\Command;
 
-use App\Event\CalendarEventIn3MonthsEvent;
+use App\Event\CalendarEvent;
+use App\Model\Period1Day;
+use App\Model\Period1Month;
+use App\Model\Period1Week;
+use App\Model\Period2Months;
+use App\Model\Period2Weeks;
+use App\Model\Period3Months;
+use App\Model\PeriodInterface;
 use DateInterval;
+use Endroid\Calendar\Model\Calendar;
 use Endroid\Calendar\Reader\IcalReader;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -46,20 +54,40 @@ class SynchroCalendrierCommand extends Command
 
         // Read from URL or path
         $calendar = $reader->readFromUrl($this->parameterBag->get('url_calendrier'));
+        
+        $periods = [
+            new Period1Day(),
+            new Period1Week(),
+            new Period2Weeks(),
+            new Period1Month(),
+            new Period2Months(),
+            new Period3Months(),
+        ];
 
-        $dateStart = (new \DateTimeImmutable('now'))->setTime(0, 0, 0);
-        $dateStart = $dateStart->add(new DateInterval('P3M'));
-        $dateEnd = $dateStart->setTime(23, 59, 59);
-
-        $events = $calendar->getEvents($dateStart, $dateEnd);
-
-        foreach ($events as $event) {
-            $event = new CalendarEventIn3MonthsEvent($event);
-            $this->dispatcher->dispatch($event, CalendarEventIn3MonthsEvent::NAME);
+        foreach ($periods as $period) {
+            $events = $this->loadEvents($calendar, $period->getPeriodInterval());
+            $this->dispatch($events, $period);
         }
 
         $io->success('You have a new command! Now make it your own! Pass --help to see your options.');
 
         return Command::SUCCESS;
+    }
+
+    protected function loadEvents(Calendar $calendar, String $period): array
+    {
+        $dateStart = (new \DateTimeImmutable('now'))->setTime(0, 0, 0);
+        $dateStart = $dateStart->add(new DateInterval($period));
+        $dateEnd = $dateStart->setTime(23, 59, 59);
+
+        return $calendar->getEvents($dateStart, $dateEnd);
+    }
+
+    protected function dispatch(array $events, PeriodInterface $period): void
+    {
+        foreach ($events as $event) {
+            $event = new CalendarEvent($event, $period);
+            $this->dispatcher->dispatch($event, CalendarEvent::NAME);
+        }
     }
 }

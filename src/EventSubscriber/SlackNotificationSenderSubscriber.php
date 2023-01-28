@@ -2,7 +2,8 @@
 
 namespace App\EventSubscriber;
 
-use App\Event\CalendarEventIn3MonthsEvent;
+use App\Event\AbstractCalendarEvent;
+use App\Event\CalendarEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\Notifier\Bridge\Slack\Block\SlackActionsBlock;
 use Symfony\Component\Notifier\Bridge\Slack\Block\SlackDividerBlock;
@@ -12,14 +13,17 @@ use Symfony\Component\Notifier\Bridge\Slack\Block\SlackSectionBlock;
 use Symfony\Component\Notifier\Bridge\Slack\SlackOptions;
 use Symfony\Component\Notifier\Message\ChatMessage;
 use Symfony\Component\Notifier\ChatterInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 class SlackNotificationSenderSubscriber implements EventSubscriberInterface
 {
-    public function __construct(public ChatterInterface $chatter) {}
+    public function __construct(public ChatterInterface $chatter, public TranslatorInterface $translator) {}
 
-    public function onCalendarEvent(CalendarEventIn3MonthsEvent $event): void
+    public function onCalendarEvent(CalendarEvent $event): void
     {
         $eventCalendar = $event->getCalendarEvent();
+        $period = $event->getPeriod();
+
         $message = (new ChatMessage($eventCalendar->getTitle()))
         // if not set explicitly, the message is sent to the
         // default transport (the first one configured)
@@ -31,11 +35,11 @@ class SlackNotificationSenderSubscriber implements EventSubscriberInterface
             (new SlackSectionBlock())
             ->field("*Début : *\n". $eventCalendar->getDateStart()->format('d/m/Y H:i'))
             ->field("*Fin : *\n". $eventCalendar->getDateEnd()->format('d/m/Y H:i'))
-            ->text(':robot_face: : _Cet événement aura lieu dans 3 mois._')
+            ->text($this->translator->trans('slack_message.period.'.$period->getPeriodInterval().'.textDelai'))
             ->accessory(
                     new SlackImageBlockElement(
-                        'https://media.giphy.com/media/LYteZEhAz0OkLV8HX0/giphy.gif',
-                        '3 mois'
+                        $this->translator->trans('slack_message.period.'.$period->getPeriodInterval().'.gif'),
+                        $this->translator->trans('slack_message.period.'.$period->getPeriodInterval().'.gifAlt')
                     )
                 )
         );
@@ -55,7 +59,7 @@ class SlackNotificationSenderSubscriber implements EventSubscriberInterface
     public static function getSubscribedEvents(): array
     {
         return [
-            CalendarEventIn3MonthsEvent::NAME => 'onCalendarEvent',
+            CalendarEvent::NAME => 'onCalendarEvent',
         ];
     }
 }

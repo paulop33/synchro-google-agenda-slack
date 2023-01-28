@@ -1,0 +1,26 @@
+slack_message:
+  period:
+    P1D:
+      textDelai: ":robot_face: : Cet événement aura lieu demain."
+      gif: "https://media.giphy.com/media/RGpqyOBvYHQecZDCT5/giphy.gif"
+      gifAlt: demain
+    P7D:
+      textDelai: ":robot_face: : Cet événement aura lieu dans une semaine."
+      gif: "https://media0.giphy.com/media/dB5tjpzh9aQLyYruXa/giphy.gif"
+      gifAlt: une semaine
+    P15D:
+      textDelai: ":robot_face: : Cet événement aura lieu dans 2 semaines."
+      gif: "https://media4.giphy.com/media/U7JWnmp9GV7tS2CHif/giphy.gif"
+      gifAlt: 2 semaines
+    P30D:
+      textDelai: ":robot_face: : Cet événement aura lieu dans 1 mois."
+      gif: "https://media0.giphy.com/media/3oxRmxT9MPETUUJrvW/giphy.gif"
+      gifAlt: 1 mois
+    P60D:
+      textDelai: ":robot_face: : Cet événement aura lieu dans 2 mois."
+      gif: "https://media2.giphy.com/media/l2JdXYYRmIGhFjQVa/giphy.gif"
+      gifAlt: 2 mois
+    P90D:
+      textDelai: ":robot_face: : Cet événement aura lieu dans 3 mois."
+      gif: "https://media.giphy.com/media/LYteZEhAz0OkLV8HX0/giphy.gif"
+      gifAlt: 3 mois
