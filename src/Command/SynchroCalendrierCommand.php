@@ -34,21 +34,9 @@ class SynchroCalendrierCommand extends Command
         parent::__construct();
     }
 
-    protected function configure(): void
-    {
-        $this
-            ->addArgument('date', InputArgument::OPTIONAL, 'Date à vérifier')
-        ;
-    }
-
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
-        $date = $input->getArgument('date');
-
-        if ($date) {
-            $io->note(sprintf('You passed an argument: %s', $date));
-        }
 
         $reader = new IcalReader();
 
