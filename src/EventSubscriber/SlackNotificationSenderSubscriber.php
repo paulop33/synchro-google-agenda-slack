@@ -24,14 +24,14 @@ class SlackNotificationSenderSubscriber implements EventSubscriberInterface
         $eventCalendar = $event->getCalendarEvent();
         $period = $event->getPeriod();
 
-        $message = (new ChatMessage($eventCalendar->getTitle()))
+        $message = (new ChatMessage($this->cleanTitle($eventCalendar->getTitle())))
         // if not set explicitly, the message is sent to the
         // default transport (the first one configured)
         ->transport('slack');
 
         $slackOptions = (new SlackOptions())
 
-        ->block(new SlackHeaderBlock(str_replace("/^\[(MAJEUR|MINEUR|MOYEN)\]/i", '', $eventCalendar->getTitle())))
+        ->block(new SlackHeaderBlock($this->cleanTitle($eventCalendar->getTitle())))
         ->block(
             (new SlackSectionBlock())
             ->field("*Début : *\n". $eventCalendar->getDateStart()->format('d/m/Y H:i'))
@@ -62,5 +62,14 @@ class SlackNotificationSenderSubscriber implements EventSubscriberInterface
         return [
             CalendarEvent::NAME => 'onCalendarEvent',
         ];
+    }
+
+    /**
+     * @param string $title
+     * @return string
+     */
+    public function cleanTitle(string $title): string
+    {
+        return preg_replace("/^\[(MAJEUR|MINEUR|MOYEN)\] ?/i", '', $title);
     }
 }
